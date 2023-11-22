@@ -40,46 +40,74 @@ def tokenize_sentence(df_column):
     return tokenized_sentences
 
 def clean_keywords(keywords: str):
-    '''remove [, ], ', from the string, and split into list of tokens by comma. 
-    Apply nltk.word_tokenize to each token for further cleaning'''
-    phrases = keywords.replace('[', '').replace(']', '').replace('\'', '').split(', ')
-    return [nltk.word_tokenize(phrase) for phrase in phrases]
+    '''remove [, ], ', from the string'''
+    # phrases = keywords.replace('[', '').replace(']', '').replace('\'', '').split(', ')
+    phrases = keywords.replace('[', '').replace(']', '').replace('\'', '').strip()
+    # return [nltk.word_tokenize(phrase) for phrase in phrases]
+    return phrases
 
 
-def keywords_marking_exact(keyword_phrases: list, sequence: list, max_len: int, tokenizer: Tokenizer):
+def mark_exact(keyword_phrases: list, sequence: list, max_len: int, tokenizer: Tokenizer):
     '''
     Mark a sequence of tokens for the exact keyword phrases. 
     If the keyword phrase as a whole is not in the sequence, it will not be marked.
     
     params:
-        keyword_phrases: a list of keyword phrases, each phrase is a list of tokens
+        keyword_phrases: a list of keyword phrases, each is a string formatted as "phrase1, phrase2, ..."
     return:
         a list of binary labels of the same length as input sequence, 1 for keyword phrases, 0 for others
     '''
-    print("phrases", keyword_phrases)
-    print(">>>")
+    # print("phrases", keyword_phrases)
+    # print(">>>")
     binary_labels = [0] * max_len
 
-    # for phrase in keyword_phrases:
-    #     if phrase == []:
-    #         continue
-    #     print("phrase", phrase)
-    #     # convert phrase tokens to sequence tokens
-    #     phrase_tokens = tokenizer.texts_to_sequences(phrase) # [0] because texts_to_sequences returns a list of lists
-    #     print("phrase tokens", phrase_tokens)
-    #     print()
-    #     # see if the phrase is in the sequence
-    #     for i in range(len(sequence) - len(phrase_tokens) + 1):
-    #         if sequence[i:i+len(phrase_tokens)] == phrase_tokens: # matching the whole phrase
-    #             binary_labels[i:i+len(phrase_tokens)] = [1] * len(phrase_tokens)
+    # convert keyword phrases to tokens
+    # print("keyword_phrase:", keyword_phrases)
+    phrases = keyword_phrases.split(', ')
+    # print("phrases:", phrases)
+    phrase_tokens = tokenizer.texts_to_sequences(phrases)
+    # print("phrase tokens", phrase_tokens)
 
-    phrase_tokens = tokenizer.texts_to_sequences(keyword_phrases)
-    print("phrase tokens", phrase_tokens)
+    # mark the sequence
+    for i in range(len(sequence) - len(phrase_tokens) + 1):
+        if sequence[i:i+len(phrase_tokens)] == phrase_tokens: # matching the whole phrase
+            binary_labels[i:i+len(phrase_tokens)] = [1] * len(phrase_tokens)
 
+    # print(binary_labels)
+    return binary_labels
+
+def mark_partial(keyword_phrases: list, sequence: list, max_len: int, tokenizer: Tokenizer):
+    '''
+    mark a sequence of tokens for the partial keyword phrases. 
+    If any part of the keyword phrase is in the sequence, it will be marked.
+    
+    params:
+        keyword_phrases: a list of keyword phrases, each is a string formatted as "phrase1, phrase2, ..."
+    return:
+        a list of binary labels of the same length as input sequence, 1 for keyword phrases, 0 for others
+    '''
+    binary_labels = [0] * max_len
+
+    # convert keyword phrases to tokens
+    # print("keyword_phrase:", keyword_phrases)
+    phrases = keyword_phrases.split(', ')
+    # print("phrases:", phrases)
+    phrase_tokens = tokenizer.texts_to_sequences(phrases)
+    # print("phrase_tokens:", phrase_tokens)
+
+    # mark the sequence
+    for phrase in phrase_tokens:
+        for token in phrase:
+            if token in sequence:
+                print("token:", token)
+                print("at:", sequence.index(token))
+                binary_labels[sequence.index(token)] = 1
+
+    # print(binary_labels)    
     return binary_labels
 
 def keywords_marking(keywords: list, sequences: list, max_len: int, tokenizer: Tokenizer):
     binary_labels = []
     for i in range(len(keywords)):
-        binary_labels.append(keywords_marking_exact(keywords[i], sequences[i], max_len, tokenizer))
+        binary_labels.append(mark_partial(keywords[i], sequences[i], max_len, tokenizer))
     return binary_labels
