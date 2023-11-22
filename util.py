@@ -1,4 +1,5 @@
 import nltk
+import numpy as np
 import pandas as pd
 from tensorflow.keras.preprocessing.text import Tokenizer
 
@@ -99,8 +100,8 @@ def mark_partial(keyword_phrases: list, sequence: list, max_len: int, tokenizer:
     for phrase in phrase_tokens:
         for token in phrase:
             if token in sequence:
-                print("token:", token)
-                print("at:", sequence.index(token))
+                # print("token:", token)
+                # print("at:", sequence.index(token))
                 binary_labels[sequence.index(token)] = 1
 
     # print(binary_labels)    
@@ -110,4 +111,25 @@ def keywords_marking(keywords: list, sequences: list, max_len: int, tokenizer: T
     binary_labels = []
     for i in range(len(keywords)):
         binary_labels.append(mark_partial(keywords[i], sequences[i], max_len, tokenizer))
-    return binary_labels
+    return np.asarray(binary_labels)
+
+# convert prediction to keywords
+def pred_to_keywords(pred, input_seq, tokenizer):
+    # convert prediction to binary with a threshold of 0.5
+    threshold = 0.5
+    binary_pred = (pred > threshold).astype(int)
+    
+    # print()
+    # print(binary_pred)
+    # convert binary prediction to keywords
+    keywords = []
+    for i in range(len(binary_pred)):
+        # break reaches the end of the sequence before the padding part
+        if input_seq[i] == 0:
+            break
+        if binary_pred[i] == 1:
+            # print("keyword at:", i)
+            # print("int rep.:", input_seq[i])
+            keywords.append(tokenizer.index_word[input_seq[i]])
+    
+    return keywords
