@@ -77,7 +77,7 @@ def mark_exact(keyword_phrases: list, sequence: list, max_len: int, tokenizer: T
     # print(binary_labels)
     return binary_labels
 
-def mark_partial(keyword_phrases: list, sequence: list, max_len: int, tokenizer: Tokenizer):
+def mark_partial(keyword_phrases: list, sequence: np.ndarray, max_len: int, tokenizer: Tokenizer):
     '''
     mark a sequence of tokens for the partial keyword phrases. 
     If any part of the keyword phrase is in the sequence, it will be marked.
@@ -96,13 +96,18 @@ def mark_partial(keyword_phrases: list, sequence: list, max_len: int, tokenizer:
     phrase_tokens = tokenizer.texts_to_sequences(phrases)
     # print("phrase_tokens:", phrase_tokens)
 
+    sequence = sequence.tolist()
     # mark the sequence
     for phrase in phrase_tokens:
         for token in phrase:
             if token in sequence:
                 # print("token:", token)
                 # print("at:", sequence.index(token))
-                binary_labels[sequence.index(token)] = 1
+                try:
+                    binary_labels[sequence.index(token)] = 1
+                except IndexError:
+                    print(f"IndexError: token {token} at {sequence.index(token)}; \
+                          sequence length: {len(sequence)}")
 
     # print(binary_labels)    
     return binary_labels
