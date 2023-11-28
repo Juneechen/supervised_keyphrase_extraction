@@ -1,17 +1,15 @@
 import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
 import numpy as np
 import pandas as pd
+import re
 from tensorflow.keras.preprocessing.text import Tokenizer
 
-# create binary label for keywords in the sentence
-def create_label(sentence, keywords, max_len):
-    label = [0] * max_len
-    for keyword in keywords:
-        if keyword in sentence:
-            start = sentence.index(keyword)
-            end = start + len(keyword)
-            label[start:end] = [1] * (end - start)
-    return label
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
 
 # read data from csv into dataframe
 def read_data(file_path):
@@ -33,12 +31,48 @@ def read_data(file_path):
 
 #     return df.values.tolist()
 
-# tokenize sentence from a column in df into words
-def tokenize_sentence(df_column):
-    tokenized_sentences = []
-    for sentence in df_column:
-        tokenized_sentences.append(nltk.word_tokenize(sentence))
-    return tokenized_sentences
+def clean_text(text):
+    '''
+    clean text by removing non-alphabetic characters and stop words
+    '''
+    text = text.lower().strip()
+
+    # keeping non-alphabetic char, space, and hyphen
+    text = re.sub('[^\w\s-]', '', text) 
+
+    # tokenize
+    tokens = word_tokenize(text)
+
+    # remove stop words
+    stop_words = set(nltk.corpus.stopwords.words('english'))
+    tokens = [t for t in tokens if t not in stop_words]
+
+    # lemmatization
+    lemmatizer = WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(token) for token in tokens]
+
+    # # join tokens back into string
+    # text = ' '.join(tokens)
+
+    return tokens
+
+def clean_kp(kp_str: str):
+    # remove special char
+    kp_str = kp_str.lower().strip()
+    kp_str = re.sub(r'[^\w\s,-]', '', kp_str)
+
+    # split into a list of keyphrases
+    keyphrases = kp_str.split(',')
+
+    # lemmatize tokens in keyphrases
+    lemmatizer = WordNetLemmatizer()
+    lemmatized_kps = []
+    for kp in keyphrases:
+        kp_tokens = kp.split()
+        lemmatized_tokens = [lemmatizer.lemmatize(token) for token in kp_tokens]
+        lemmatized_kps.append(' '.join(lemmatized_tokens))
+
+    return lemmatized_kps
 
 def clean_keywords(keywords: str):
     '''remove [, ], ', from the string'''
@@ -117,6 +151,16 @@ def keywords_marking(keywords: list, sequences: list, max_len: int, tokenizer: T
     for i in range(len(keywords)):
         binary_labels.append(mark_partial(keywords[i], sequences[i], max_len, tokenizer))
     return np.asarray(binary_labels)
+
+# # create binary label for keywords in the sentence
+# def create_label(sentence, keywords, max_len):
+#     label = [0] * max_len
+#     for keyword in keywords:
+#         if keyword in sentence:
+#             start = sentence.index(keyword)
+#             end = start + len(keyword)
+#             label[start:end] = [1] * (end - start)
+#     return label
 
 # convert prediction to keywords
 def pred_to_keywords(pred, input_seq, tokenizer):
