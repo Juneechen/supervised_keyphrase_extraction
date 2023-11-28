@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import re
 from tensorflow.keras.preprocessing.text import Tokenizer
+# import tf.keras.preprocessing.sequence.pad_sequences
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 nltk.download('punkt')
 nltk.download('stopwords')
@@ -21,16 +23,6 @@ def read_data(file_path):
 
     return df
 
-# def read_into_list(file_path):
-#     data = []
-#     try:
-#         df = pd.read_csv(file_path, encoding='utf-8')
-#     except UnicodeDecodeError:
-#         # handle 'utf-8' codec can't decode
-#         df = pd.read_csv(file_path, encoding='latin-1')
-
-#     return df.values.tolist()
-
 def clean_text(text):
     '''
     clean text by removing non-alphabetic characters and stop words
@@ -42,7 +34,7 @@ def clean_text(text):
 
     # tokenize
     tokens = word_tokenize(text)
-
+          
     # remove stop words
     stop_words = set(nltk.corpus.stopwords.words('english'))
     tokens = [t for t in tokens if t not in stop_words]
@@ -81,86 +73,140 @@ def clean_keywords(keywords: str):
     # return [nltk.word_tokenize(phrase) for phrase in phrases]
     return phrases
 
-
-def mark_exact(keyword_phrases: list, sequence: list, max_len: int, tokenizer: Tokenizer):
+def setup_tokenizer(df, columns):
     '''
-    Mark a sequence of tokens for the exact keyword phrases. 
-    If the keyword phrase as a whole is not in the sequence, it will not be marked.
+    set up a keras tokenizer with text from the given columns
+    '''
+    tokenizer = Tokenizer()
+    for col in columns:
+        tokenizer.fit_on_texts(df[col])
     
-    params:
-        keyword_phrases: a list of keyword phrases, each is a string formatted as "phrase1, phrase2, ..."
-    return:
-        a list of binary labels of the same length as input sequence, 1 for keyword phrases, 0 for others
+    # set tokenizer index 0 to be the padding token
+    tokenizer.index_word[0] = '<PAD>'
+    tokenizer.word_index['<PAD>'] = 0
+    
+    return tokenizer
+
+def get_embeddings_matrix(tokenizer, embeddings, emb_dim):
     '''
-    # print("phrases", keyword_phrases)
-    # print(">>>")
-    binary_labels = [0] * max_len
+    get the embeddings matrix for the given tokenizer and embeddings
+    '''
+    word_index = tokenizer.word_index
+    vocab_size = len(word_index) 
+    embedding_matrix = np.zeros((vocab_size, emb_dim)) # create a matrix with all zeros
+    for word, i in word_index.items():
+        if word in embeddings:
+            embedding_vector = embeddings[word]
+            embedding_matrix[i] = embedding_vector
+    return embedding_matrix
 
-    # convert keyword phrases to tokens
-    # print("keyword_phrase:", keyword_phrases)
-    phrases = keyword_phrases.split(', ')
-    # print("phrases:", phrases)
-    phrase_tokens = tokenizer.texts_to_sequences(phrases)
-    # print("phrase tokens", phrase_tokens)
 
-    # mark the sequence
-    for i in range(len(sequence) - len(phrase_tokens) + 1):
-        if sequence[i:i+len(phrase_tokens)] == phrase_tokens: # matching the whole phrase
-            binary_labels[i:i+len(phrase_tokens)] = [1] * len(phrase_tokens)
+def tokens_to_embeddings(tokens, tokenizer, embeddings_matrix, emb_dim, max_len):
+    '''
+    convert tokens representing one sample to embeddings; padding and truncation are applied
+    return:
+        a list of embeddings of len=max_len;
+        each embedding is a list of len=emb_dim
+    '''
 
-    # print(binary_labels)
-    return binary_labels
+    embeddings_list = []
+    
+    # convert the tokens to integers sequences (with padding)
+    tokens_idx = tokenizer.texts_to_sequences([tokens])
+    tokens_idx = pad_sequences(tokens_idx, maxlen=max_len, padding='post', truncating='post')
 
-def mark_partial(keyword_phrases: list, sequence: np.ndarray, max_len: int, tokenizer: Tokenizer):
+    for i in tokens_idx[0]:
+        embeddings_list.append(embeddings_matrix[i])
+
+    # print("embedding list shape:", len(embeddings_list))
+    # print("-----------next sample:-----------")
+
+    return embeddings_list
+
+def mark_keywords(keyphrases: list, input_tokens: list, max_len: int):
     '''
     mark a sequence of tokens for the partial keyword phrases. 
-    If any part of the keyword phrase is in the sequence, it will be marked.
+    If any part of a keyword phrase is in the sequence, it will be marked as 1.
     
     params:
-        keyword_phrases: a list of keyword phrases, each is a string formatted as "phrase1, phrase2, ..."
+        keyphrases: a list of preprocessed keyphrases, in the format of "phrase 1, phrase 2, ..."
+        input_tokens: a list of tokens represeting one sample input
+        max_len: maximum length of the input
     return:
-        a list of binary labels of the same length as input sequence, 1 for keyword phrases, 0 for others
+        a list of binary labels, length = sample length = max_len;
+        1 for keyword, 0 for non-keyword
     '''
-    binary_labels = [0] * max_len
+    label = [0] * max_len
 
-    # convert keyword phrases to tokens
-    # print("keyword_phrase:", keyword_phrases)
-    phrases = keyword_phrases.split(', ')
-    # print("phrases:", phrases)
-    phrase_tokens = tokenizer.texts_to_sequences(phrases)
-    # print("phrase_tokens:", phrase_tokens)
+    for kp in keyphrases:
+        kp = kp.split()
+        for token in kp:
+            try:
+                idx = input_tokens.index(token)
+                label[idx] = 1
+            except ValueError:
+                continue
+            
+    return label
 
-    sequence = sequence.tolist()
-    # mark the sequence
-    for phrase in phrase_tokens:
-        for token in phrase:
-            if token in sequence:
-                # print("token:", token)
-                # print("at:", sequence.index(token))
-                try:
-                    binary_labels[sequence.index(token)] = 1
-                except IndexError:
-                    print(f"IndexError: token {token} at {sequence.index(token)}; \
-                          sequence length: {len(sequence)}")
+def make_labels(keyphrases_df_col, input_tokens_df_col, max_len):
+    '''
+    create label with the given keyphrases and input tokens.
 
-    # print(binary_labels)    
-    return binary_labels
+    params:
+        keyphrases_df_col: a dataframe column of keyphrases
+        input_tokens_df_col: a dataframe column of input tokens
+        tokenizer: a keras tokenizer
+        max_len: maximum length of each input sample
+    return:
+        a numpy array of labels, shape: (number of samples, sample length = max_len, 1)
+    '''
+    labels = []
 
-def keywords_marking(keywords: list, sequences: list, max_len: int, tokenizer: Tokenizer):
-    binary_labels = []
-    for i in range(len(keywords)):
-        binary_labels.append(mark_partial(keywords[i], sequences[i], max_len, tokenizer))
-    return np.asarray(binary_labels)
+    for keyphrases, input_tokens in zip(keyphrases_df_col, input_tokens_df_col):
+        # clean up the keyphrases
+        kps = clean_kp(keyphrases)
+        labels.append(mark_keywords(kps, input_tokens, max_len))
+    
+    return np.asarray(labels)
 
-# # create binary label for keywords in the sentence
-# def create_label(sentence, keywords, max_len):
-#     label = [0] * max_len
-#     for keyword in keywords:
-#         if keyword in sentence:
-#             start = sentence.index(keyword)
-#             end = start + len(keyword)
-#             label[start:end] = [1] * (end - start)
-#     return label
+def create_input_array(df, input_cols: list, label_col: str, embeddings, tokenizer, emb_dim, max_len, sample_size=None):
+    """
+    Convert samples from dataframe to input and label numpy arrays.
+    Each input is a list of embeddings for each token in the sample; unknown words represented by a vector of 0s.   
+    Input array shape: (number of samples, sample length = max_len, embedding dimension)
+    Label array shape: (number of samples, sample length = max_len, 1)
+
+    params:
+        df: dataframe
+        cols: columns to be used, e.g. ['title', 'abstract']
+        embeddings: glove embeddings
+        max_len: maximum length of the input
+    return: 
+        numpy array of inputs, numpy array of labels
+    """
+    # create the input array
+    input_array = []
+
+    # sample the dataframe for testing on part of the data
+    if sample_size is not None:
+        df = df.sample(n=sample_size)
+
+    # concatenate the columns e.g. ['title', 'abstract']
+    df['input_tokens'] = df[input_cols].agg(' '.join, axis=1)
+    # preprocess and tokenize the combined column
+    df['input_tokens'] = df['input_tokens'].apply(lambda row: clean_text(row))
+
+    for sample_tokens in df['input_tokens']:
+        # convert to a list of embeddings (with padding and truncation)
+        embeddings_list = tokens_to_embeddings(sample_tokens, tokenizer, embeddings, emb_dim, max_len)
+        input_array.append(embeddings_list)
+
+    # create labels
+    labels = make_labels(df[label_col], df['input_tokens'], max_len)
+
+    # return the input array as a numpy array
+    return np.array(input_array), labels
 
 # convert prediction to keywords
 def pred_to_keywords(pred, input_seq, tokenizer):
