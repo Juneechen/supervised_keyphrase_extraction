@@ -208,23 +208,58 @@ def create_input_array(df, input_col: str, kp_col: str, tokenizer, embeddings, e
     # return the input array as a numpy array
     return np.array(input_array), labels
 
-# convert prediction to keywords
-def pred_to_keywords(pred, input_seq, tokenizer):
-    # convert prediction to binary with a threshold of 0.5
-    threshold = 0.5
-    binary_pred = (pred > threshold).astype(int)
+# # convert prediction to keywords
+# def pred_to_keywords(pred, input_seq, tokenizer):
+#     # convert prediction to binary with a threshold of 0.5
+#     threshold = 0.5
+#     binary_pred = (pred > threshold).astype(int)
     
-    # print()
-    # print(binary_pred)
-    # convert binary prediction to keywords
+#     # print()
+#     # print(binary_pred)
+#     # convert binary prediction to keywords
+#     keywords = []
+#     for i in range(len(binary_pred)):
+#         # break reaches the end of the sequence before the padding part
+#         if input_seq[i] == 0:
+#             break
+#         if binary_pred[i] == 1:
+#             # print("keyword at:", i)
+#             # print("int rep.:", input_seq[i])
+#             keywords.append(tokenizer.index_word[input_seq[i]])
+    
+#     return keywords
+
+# convert prediction to keywords
+def pred_to_keywords(preds, input_tokens):
+    '''
+    Retrieve words from input_tokens that are predicted to be keywords.
+
+    params:
+        preds: a list of list of predictions for each word in the input sequence
+        input_tokens: a list of list of tokens representing the original input sequence (without padding)
+    return:
+        a list of list of keywords
+    '''
     keywords = []
-    for i in range(len(binary_pred)):
-        # break reaches the end of the sequence before the padding part
-        if input_seq[i] == 0:
-            break
-        if binary_pred[i] == 1:
-            # print("keyword at:", i)
-            # print("int rep.:", input_seq[i])
-            keywords.append(tokenizer.index_word[input_seq[i]])
+
+    for i in range(len(preds)):
+        pred = preds[i]
+        input_seq = input_tokens[i]
+
+        # convert prediction to binary with a threshold of 0.5
+        threshold = 0.5
+        binary_pred = (pred > threshold).astype(int)
+        # print("binary_pred:", binary_pred)
+
+        kws = []
+        for j in range(len(binary_pred)):   # fix length = max_len
+            # break reaches the end of the sequence (without padding)
+            if j >= len(input_seq):
+                break
+            if binary_pred[j] == 1:
+                # print("keyword at:", j)
+                kws.append(input_seq[j])
+
+        keywords.append(kws)
     
     return keywords
