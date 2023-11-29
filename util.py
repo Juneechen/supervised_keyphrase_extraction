@@ -66,18 +66,19 @@ def clean_kp(kp_str: str):
 
     return lemmatized_kps
 
-def setup_tokenizer(df, columns):
+def setup_tokenizer(train_df, test_df, columns):
     '''
     set up a keras tokenizer with text from the given columns
     '''
     tokenizer = Tokenizer()
     for col in columns:
-        tokenizer.fit_on_texts(df[col])
+        tokenizer.fit_on_texts(train_df[col])
+        tokenizer.fit_on_texts(test_df[col])
     
     # set tokenizer index 0 to be the padding token
     tokenizer.index_word[0] = '<PAD>'
     tokenizer.word_index['<PAD>'] = 0
-    
+
     return tokenizer
 
 def get_embeddings_matrix(tokenizer, embeddings, emb_dim):
@@ -86,6 +87,7 @@ def get_embeddings_matrix(tokenizer, embeddings, emb_dim):
     '''
     word_index = tokenizer.word_index
     vocab_size = len(word_index) 
+
     embedding_matrix = np.zeros((vocab_size, emb_dim)) # create a matrix with all zeros
     for word, i in word_index.items():
         if word in embeddings:
@@ -131,14 +133,15 @@ def mark_keywords(keyphrases: list, input_tokens: list, max_len: int):
     '''
     label = [0] * max_len
 
+    kp_tokens = []
     for kp in keyphrases:
-        kp = kp.split()
-        for token in kp:
-            try:
-                idx = input_tokens.index(token)
-                label[idx] = 1
-            except ValueError:
-                continue
+        kp_tokens.extend(kp.split())
+
+    for i in range(len(input_tokens)):
+        if i >= max_len:
+            break
+        if input_tokens[i] in kp_tokens:
+            label[i] = 1
             
     return label
 
@@ -200,7 +203,7 @@ def create_input_array(df, input_col: str, kp_col: str, tokenizer, embeddings, e
         input_array.append(embeddings_list)
 
     # create labels
-    labels = make_labels(df[kp_col], df[kp_col], max_len)
+    labels = make_labels(df[kp_col], df[input_col], max_len)
 
     # return the input array as a numpy array
     return np.array(input_array), labels
