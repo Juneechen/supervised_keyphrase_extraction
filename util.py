@@ -66,13 +66,6 @@ def clean_kp(kp_str: str):
 
     return lemmatized_kps
 
-def clean_keywords(keywords: str):
-    '''remove [, ], ', from the string'''
-    # phrases = keywords.replace('[', '').replace(']', '').replace('\'', '').split(', ')
-    phrases = keywords.replace('[', '').replace(']', '').replace('\'', '').strip()
-    # return [nltk.word_tokenize(phrase) for phrase in phrases]
-    return phrases
-
 def setup_tokenizer(df, columns):
     '''
     set up a keras tokenizer with text from the given columns
@@ -154,7 +147,7 @@ def make_labels(keyphrases_df_col, input_tokens_df_col, max_len):
     create label with the given keyphrases and input tokens.
 
     params:
-        keyphrases_df_col: a dataframe column of keyphrases
+        keyphrases_df_col: a dataframe column of keyphrases, preprocessed list of phrases
         input_tokens_df_col: a dataframe column of input tokens
         tokenizer: a keras tokenizer
         max_len: maximum length of each input sample
@@ -164,30 +157,11 @@ def make_labels(keyphrases_df_col, input_tokens_df_col, max_len):
     labels = []
 
     for keyphrases, input_tokens in zip(keyphrases_df_col, input_tokens_df_col):
-        # clean up the keyphrases
-        kps = clean_kp(keyphrases)
-        labels.append(mark_keywords(kps, input_tokens, max_len))
+        labels.append(mark_keywords(keyphrases, input_tokens, max_len))
     
     return np.asarray(labels)
 
-def create_input_array(df, input_cols: list, label_col: str, embeddings, tokenizer, emb_dim, max_len, sample_size=None):
-    """
-    Convert samples from dataframe to input and label numpy arrays.
-    Each input is a list of embeddings for each token in the sample; unknown words represented by a vector of 0s.   
-    Input array shape: (number of samples, sample length = max_len, embedding dimension)
-    Label array shape: (number of samples, sample length = max_len, 1)
-
-    params:
-        df: dataframe
-        cols: columns to be used, e.g. ['title', 'abstract']
-        embeddings: glove embeddings
-        max_len: maximum length of the input
-    return: 
-        numpy array of inputs, numpy array of labels
-    """
-    # create the input array
-    input_array = []
-
+def preprocess_data(df, input_cols: list, label_col: str, sample_size=None):
     # sample the dataframe for testing on part of the data
     if sample_size is not None:
         df = df.sample(n=sample_size)
@@ -197,13 +171,36 @@ def create_input_array(df, input_cols: list, label_col: str, embeddings, tokeniz
     # preprocess and tokenize the combined column
     df['input_tokens'] = df['input_tokens'].apply(lambda row: clean_text(row))
 
-    for sample_tokens in df['input_tokens']:
+    # clean keyphrases
+    df['clean_kp'] = df[label_col].apply(lambda row: clean_kp(row))
+
+    return df
+
+def create_input_array(df, input_col: str, kp_col: str, tokenizer, embeddings, emb_dim, max_len):
+    """
+    Convert samples from dataframe to input and label numpy arrays.
+    Each input is a list of embeddings for each token in the sample; unknown words represented by a vector of 0s.   
+    Input array shape: (number of samples, sample length = max_len, embedding dimension)
+    Label array shape: (number of samples, sample length = max_len, 1)
+
+    params:
+        df: dataframe
+        input_col: column to be used as input
+        embeddings: glove embeddings
+        max_len: maximum length of the input
+    return: 
+        numpy array of inputs, numpy array of labels
+    """
+    # create the input array
+    input_array = []
+
+    for sample_tokens in df[input_col]:
         # convert to a list of embeddings (with padding and truncation)
         embeddings_list = tokens_to_embeddings(sample_tokens, tokenizer, embeddings, emb_dim, max_len)
         input_array.append(embeddings_list)
 
     # create labels
-    labels = make_labels(df[label_col], df['input_tokens'], max_len)
+    labels = make_labels(df[kp_col], df[kp_col], max_len)
 
     # return the input array as a numpy array
     return np.array(input_array), labels
