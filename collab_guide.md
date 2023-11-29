@@ -1,6 +1,6 @@
 ### Collboration Guide
 
-1.  `git clone https://github.com/Juneechen/bi-LSTM.git`
+1.  `git clone https://github.com/Juneechen/supervised_keyphrase_extraction.git`
 
 2.  Create a branch:
 
