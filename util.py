@@ -171,6 +171,7 @@ def preprocess_data(df, input_cols: list, label_col: str, sample_size=None):
 
     # concatenate the columns e.g. ['title', 'abstract']
     df['input_tokens'] = df[input_cols].agg(' '.join, axis=1)
+
     # preprocess and tokenize the combined column
     df['input_tokens'] = df['input_tokens'].apply(lambda row: clean_text(row))
 
@@ -241,13 +242,13 @@ def pred_to_keywords(preds, input_tokens):
         a list of list of keywords
     '''
     keywords = []
-
+    # print("In Utils - pred")
     for i in range(len(preds)):
         pred = preds[i]
         input_seq = input_tokens[i]
 
         # convert prediction to binary with a threshold of 0.5
-        threshold = 0.5
+        threshold = 0.42
         binary_pred = (pred > threshold).astype(int)
         # print("binary_pred:", binary_pred)
 
