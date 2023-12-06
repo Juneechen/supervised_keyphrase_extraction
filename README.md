@@ -26,7 +26,7 @@ Each input sample is first normalized by converting all to lower-case, and remov
     # keeping non-alphabetic char, space, and hyphen
     text = re.sub('[^\w\s-]', '', text)
 
-It is then further pre-processed by tokenizing, removing English stopwords, and applying lemmatization. These process is done using `nltk.corpus.stopwords`, `nltk.tokenize.word_tokenize`, and `nltk.stem.WordNetLemmatizer`. The pre-processed input from the above example looks like this:
+They are then further pre-processed by applying tokenization, English stopwords Removal, lemmatization. These processes are done using `nltk.corpus.stopwords`, `nltk.tokenize.word_tokenize`, and `nltk.stem.WordNetLemmatizer`. The pre-processed input from the above example looks like this:
 
     ['toward', 'identifying', 'inter-project', 'clone', 'set', 'building', 'useful', 'library', 'present', 'paper', 'discus', 'clone', 'set', 'generated', 'large', 'amount', 'source', 'code', 'knowledge', 'clone', 'set', 'help', 'manage', 'software', 'asset', 'example', 'figure', 'state', 'asset', 'easier', 'build', 'useful', 'library', 'based', 'knowledge']
 
