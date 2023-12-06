@@ -231,7 +231,7 @@ def create_input_array(df, input_col: str, kp_col: str, tokenizer, embeddings, e
 #     return keywords
 
 # convert prediction to keywords
-def pred_to_keywords(preds, input_tokens):
+def pred_to_keywords(preds, input_tokens, threshold=0.35):
     '''
     Retrieve words from input_tokens that are predicted to be keywords.
 
@@ -247,8 +247,7 @@ def pred_to_keywords(preds, input_tokens):
         pred = preds[i]
         input_seq = input_tokens[i]
 
-        # convert prediction to binary with a threshold of 0.5
-        threshold = 0.42
+        # convert prediction to binary with a given threshold
         binary_pred = (pred > threshold).astype(int)
         # print("binary_pred:", binary_pred)
 
