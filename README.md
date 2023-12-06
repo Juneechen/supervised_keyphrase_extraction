@@ -38,7 +38,9 @@ They are then further pre-processed by applying tokenization, English stopwords 
 
 Padding and truncation are applied to these input tokens for the sequential model. To decide on the max length for setting the input, we mapped out the length (number of tokens) distribution over the pre-processed input from our traning samples. The max length is eventually set to 250 because about 98% of the train samples is within this length. We did experiment with other length settings as well to see how that affect our results, and a few experiments will be presented in later section.
 
-❗️TODO: [insert some distribution graph]
+![Distribution of Train Sample Lengths](Train-size-distribution.png)
+
+![Distribution of Test Sample Lengths](Test-size-distribution.png)
 
 We experimented with <integer indices as input + embedding layer within the model> versus <pre-defined word embeddings as input + no embedding layer within the model>, the later approach gave better results. The final input to our model is the padded input tokens converted to embedding vectors using **word embeddings `GloVe 50`** to better capture contextual information.
 
