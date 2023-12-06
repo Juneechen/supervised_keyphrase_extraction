@@ -14,6 +14,7 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
+
 # read data from csv into dataframe
 def read_data(file_path):
     try:
@@ -23,6 +24,7 @@ def read_data(file_path):
         df = pd.read_csv(file_path, encoding='latin-1')
 
     return df
+
 
 def clean_text(text):
     '''
@@ -49,6 +51,7 @@ def clean_text(text):
 
     return tokens
 
+
 def clean_kp(kp_str: str):
     # remove special char
     kp_str = kp_str.lower().strip()
@@ -67,6 +70,7 @@ def clean_kp(kp_str: str):
 
     return lemmatized_kps
 
+
 def setup_tokenizer(train_df, test_df, columns):
     '''
     set up a keras tokenizer with text from the given columns
@@ -81,6 +85,7 @@ def setup_tokenizer(train_df, test_df, columns):
     tokenizer.word_index['<PAD>'] = 0
 
     return tokenizer
+
 
 def get_embeddings_matrix(tokenizer, embeddings, emb_dim):
     '''
@@ -119,6 +124,7 @@ def tokens_to_embeddings(tokens, tokenizer, embeddings_matrix, emb_dim, max_len)
 
     return embeddings_list
 
+
 def mark_keywords(keyphrases: list, input_tokens: list, max_len: int):
     '''
     mark a sequence of tokens for the partial keyword phrases. 
@@ -146,6 +152,7 @@ def mark_keywords(keyphrases: list, input_tokens: list, max_len: int):
             
     return label
 
+
 def make_labels(keyphrases_df_col, input_tokens_df_col, max_len):
     '''
     create label with the given keyphrases and input tokens.
@@ -165,6 +172,7 @@ def make_labels(keyphrases_df_col, input_tokens_df_col, max_len):
     
     return np.asarray(labels)
 
+
 def preprocess_data(df, input_cols: list, label_col: str, sample_size=None):
     # sample the dataframe for testing on part of the data
     if sample_size is not None:
@@ -180,6 +188,7 @@ def preprocess_data(df, input_cols: list, label_col: str, sample_size=None):
     df['clean_kp'] = df[label_col].apply(lambda row: clean_kp(row))
 
     return df
+
 
 def create_input_array(df, input_col: str, kp_col: str, tokenizer, embeddings, emb_dim, max_len):
     """
@@ -210,6 +219,7 @@ def create_input_array(df, input_col: str, kp_col: str, tokenizer, embeddings, e
     # return the input array as a numpy array
     return np.array(input_array), labels
 
+
 def plot_sample_len_distribution(df, col, title):
     sample_size = []
     for i in df[col]:
@@ -223,33 +233,14 @@ def plot_sample_len_distribution(df, col, title):
     
     print(pd.DataFrame(np.array(sample_size)).describe(percentiles = [.25, .5, .75, .95]).transpose())
 
-# # convert prediction to keywords
-# def pred_to_keywords(pred, input_seq, tokenizer):
-#     # convert prediction to binary with a threshold of 0.5
-#     threshold = 0.5
-#     binary_pred = (pred > threshold).astype(int)
-    
-#     # print()
-#     # print(binary_pred)
-#     # convert binary prediction to keywords
-#     keywords = []
-#     for i in range(len(binary_pred)):
-#         # break reaches the end of the sequence before the padding part
-#         if input_seq[i] == 0:
-#             break
-#         if binary_pred[i] == 1:
-#             # print("keyword at:", i)
-#             # print("int rep.:", input_seq[i])
-#             keywords.append(tokenizer.index_word[input_seq[i]])
-    
-#     return keywords
 
 def evaluate_preds(preds, y_test, threshold=0.35):
     '''evaluate predictions with sklearn.metrics'''
     binary_preds = (preds >= threshold).astype(int)
-    print("Precision:",precision_score(y_test, binary_preds, average='micro'))
-    print("Recall:",recall_score(y_test, binary_preds, average='micro'))
-    print("F1:",f1_score(y_test, binary_preds, average='micro'))
+    print("Precision:", precision_score(y_test, binary_preds, average='micro'))
+    print("Recall:", recall_score(y_test, binary_preds, average='micro'))
+    print("F1:", f1_score(y_test, binary_preds, average='micro'))
+
 
 # convert prediction to keywords
 def pred_to_keywords(preds, input_tokens, threshold=0.35):
