@@ -46,9 +46,6 @@ def clean_text(text):
     lemmatizer = WordNetLemmatizer()
     tokens = [lemmatizer.lemmatize(token) for token in tokens]
 
-    # # join tokens back into string
-    # text = ' '.join(tokens)
-
     return tokens
 
 
@@ -118,9 +115,6 @@ def tokens_to_embeddings(tokens, tokenizer, embeddings_matrix, emb_dim, max_len)
 
     for i in tokens_idx[0]:
         embeddings_list.append(embeddings_matrix[i])
-
-    # print("embedding list shape:", len(embeddings_list))
-    # print("-----------next sample:-----------")
 
     return embeddings_list
 
@@ -236,6 +230,7 @@ def plot_sample_len_distribution(df, col, title):
 
 def evaluate_preds(preds, y_test, threshold=0.35):
     '''evaluate predictions with sklearn.metrics'''
+
     binary_preds = (preds >= threshold).astype(int)
     print("Precision:", precision_score(y_test, binary_preds, average='micro'))
     print("Recall:", recall_score(y_test, binary_preds, average='micro'))
@@ -254,22 +249,18 @@ def pred_to_keywords(preds, input_tokens, threshold=0.35):
         a list of list of keywords
     '''
     keywords = []
-    # print("In Utils - pred")
     for i in range(len(preds)):
         pred = preds[i]
         input_seq = input_tokens[i]
 
         # convert prediction to binary with a given threshold
         binary_pred = (pred > threshold).astype(int)
-        # print("binary_pred:", binary_pred)
-
         kws = []
-        for j in range(len(binary_pred)):   # fix length = max_len
+        for j in range(len(binary_pred)):
             # break reaches the end of the sequence (without padding)
             if j >= len(input_seq):
                 break
             if binary_pred[j] == 1:
-                # print("keyword at:", j)
                 kws.append(input_seq[j])
 
         keywords.append(kws)
