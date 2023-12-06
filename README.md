@@ -2,13 +2,19 @@
 
 ## Introduction
 
-> What did you do and why is it interesting?
+We worked on key phrase extraction for research papers, using both bidirectional LSTM and BERT models. We fed the models research paper titles and abstracts, and their output was a set of labelled key phrases that were mentioned within the input text. 
+
+This project is interesting because it allowed us to explore different approaches to key phrase extraction and compare the performance of these two state-of-the-art architectures in the specific context of scientific literature, offering valuable insights into their effectiveness for this crucial NLP task.
 
 ## Datasets
 
-### Sci-HTC
+### Sci-HTC:
 
-### set 2
+We got to know about this dataset through https://github.com/msadat3/SciHTC/blob/main/README.md and contacted __THIS PERSON__ to get access to the whole dataset (as mentioned in the link). This dataset contains a total of 167546 research papers, split into 148929 for training and 18617 for testing. 
+
+### INSPEC:
+
+We got to know about this dataset when we were reading papers and articles on key phrase extraction and came across this paper: "Bidirectional LSTM Recurrent Neural Network For Keyphrase Extraction" by Marco Basaldella, Elisa Antolli, Giuseppe Serra and Carlo Tasso. This dataset is available on https://huggingface.co/datasets/memray/inspec. This dataset contains a total of 2000 research papers, split into 1500 for training/validation and 500 for testing. 
 
 > How do your model(s) work? (explain) Point out any important details regarding your approaches to unknown words, training, decoding, etc.
 
