@@ -3,10 +3,11 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 import re
+from sklearn.metrics import precision_score, recall_score, f1_score
 from tensorflow.keras.preprocessing.text import Tokenizer
-# import tf.keras.preprocessing.sequence.pad_sequences
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 nltk.download('punkt')
@@ -209,6 +210,19 @@ def create_input_array(df, input_col: str, kp_col: str, tokenizer, embeddings, e
     # return the input array as a numpy array
     return np.array(input_array), labels
 
+def plot_sample_len_distribution(df, col, title):
+    sample_size = []
+    for i in df[col]:
+        sample_size.append(len(i))
+    
+    plt.hist(sample_size, bins=len(set(sample_size)))
+    plt.title(title)
+    plt.xlabel('Length of Sample (Number of Tokens)')
+    plt.ylabel('Frequency')
+    plt.show()
+    
+    print(pd.DataFrame(np.array(sample_size)).describe(percentiles = [.25, .5, .75, .95]).transpose())
+
 # # convert prediction to keywords
 # def pred_to_keywords(pred, input_seq, tokenizer):
 #     # convert prediction to binary with a threshold of 0.5
@@ -229,6 +243,13 @@ def create_input_array(df, input_col: str, kp_col: str, tokenizer, embeddings, e
 #             keywords.append(tokenizer.index_word[input_seq[i]])
     
 #     return keywords
+
+def evaluate_preds(preds, y_test, threshold=0.35):
+    '''evaluate predictions with sklearn.metrics'''
+    binary_preds = (preds >= threshold).astype(int)
+    print("Precision:",precision_score(y_test, binary_preds, average='micro'))
+    print("Recall:",recall_score(y_test, binary_preds, average='micro'))
+    print("F1:",f1_score(y_test, binary_preds, average='micro'))
 
 # convert prediction to keywords
 def pred_to_keywords(preds, input_tokens, threshold=0.35):
