@@ -140,11 +140,17 @@ The 3 models were evaluated using Precision, Recall, and F1 score. The results a
 
 ## Summary & Future Explorations
 
+This project explored the use of bidirectional LSTMs for key phrase extraction from research paper titles and abstracts. 
+
+We compared three models with different configurations and parameters and Model 3 performed best, achieving a better balance between precision and recall. These findings provide a promising foundation for further exploration of LSTM-based key phrase extraction techniques.
+
 Some of the limitations we faced during the key-phrase extraction process were:
 1. Due to limited computational resources, all models were trained for only 5 epochs. This might have prevented them from reaching their full potential in terms of accuracy and generalizability.
 2. The labels in the dataset included words and phrases that were not present in the title + abstract of respective research papers. This would make it difficult for the models to understand how those labels got selected and how to comprehend them.
 3. For this project, only the title and abstract sections of the research papers were used to train the models. Using the whole research (or more sections like Introduction and Conclusion) would be better as the model would get more contextual information on the key words and phrases.
 4. The models did not understant the semantic context of the input data, example - "digital fine art", and processed them as individual words. So the models were able to predict "digitial" during testing, but not the whole term. 
+
+By addressing these limitations and exploring new avenues, this project's findings can contribute to the development of more accurate, interpretable, and versatile key phrase extraction systems for various scientific and NLP applications.
 
 ## Reference
 1. https://github.com/msadat3/SciHTC/blob/main/README.md
