@@ -10,7 +10,7 @@ This project is interesting because it allowed us to explore different approache
 
 ### Sci-HTC:
 
-We got to know about this dataset through https://github.com/msadat3/SciHTC/blob/main/README.md and contacted **THIS PERSON** to get access to the whole dataset (as mentioned in the link). This dataset contains a total of 167546 research papers, split into 148929 for training and 18617 for testing.
+We got to know about this dataset through https://github.com/msadat3/SciHTC/blob/main/README.md and contacted the authors of SciHTC (Mobashir Sadat, Cornelia Caragea) to get access to the whole dataset (as mentioned in the link). This dataset contains a total of 167546 research papers, split into 148929 for training and 18617 for testing.
 
 ### INSPEC:
 
@@ -136,7 +136,33 @@ The 3 models were evaluated using Precision, Recall, and F1 score. The results a
 
 ## Pre-trained BERT
 
+Objective: Utilized SciBERT to predict keywords for scientific abstracts, aiming to enhance literature review and research accessibility.
+
+Methodology: Employed the SciBERT model, fine-tuned for multi-label classification, on concatenated titles and abstracts. The model was trained over ten epochs, leveraging the SciBERT's ability to understand scientific context.
+
+Key Results: Achieved a training loss of approximately 0.0020 and validation loss of around 0.0020, but faced challenges with a low F1 score (~0.0003),
+indicating potential improvements in capturing multi-label dimensions.
+
+Future Direction: Plans include exploring advanced fine-tuning techniques, addressing class imbalance, and integrating additional contextual features for enhanced keyword prediction accuracy.
+
+SciBERT Architecture:
+
+Employs the BERT transformer architecture with modifications for scientific texts.(pretrained('allenai/scibert_scivocab_uncased'))
+-Trained on 10000 records
+
+Includes additional linear layers for multi-label classification.
+Tokenizer and Processing:
+
+Utilizes WordPiece tokenizer for efficient subword tokenization, vital for scientific lexicon.
+Incorporates special tokens ([CLS], [SEP]) for structure, aiding in sequence classification tasks.
+Output Layers:
+
+Integrates a sigmoid activation layer for multi-label probability estimation.
+Utilizes MultiLabelBinarizer (MLB) for converting predicted outputs to binary keyword indicators.
+
 ## Comparing Bi-LSTM with Pre-trained BERT
+
+- Bi-LSTM outperformed Pre-trained BERT
 
 ## Summary & Future Explorations
 
