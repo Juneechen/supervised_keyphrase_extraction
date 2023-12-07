@@ -135,12 +135,18 @@ The 3 models were evaluated using Precision, Recall, and F1 score. The results a
 ## Pre-trained BERT
 
 
-## Comparing bi-LSTM with Pre-trained BERT
+## Comparing Bi-LSTM with Pre-trained BERT
 
 
 ## Summary & Future Explorations
 
+Some of the limitations we faced during the key-phrase extraction process were:
+1. Due to limited computational resources, all models were trained for only 5 epochs. This might have prevented them from reaching their full potential in terms of accuracy and generalizability.
+2. The labels in the dataset included words and phrases that were not present in the title + abstract of respective research papers. This would make it difficult for the models to understand how those labels got selected and how to comprehend them.
+3. For this project, only the title and abstract sections of the research papers were used to train the models. Using the whole research (or more sections like Introduction and Conclusion) would be better as the model would get more contextual information on the key words and phrases.
+4. The models did not understant the semantic context of the input data, example - "digital fine art", and processed them as individual words. So the models were able to predict "digitial" during testing, but not the whole term. 
+
 ## Reference
 1. https://github.com/msadat3/SciHTC/blob/main/README.md
 2. https://huggingface.co/datasets/memray/inspec
-3. 
+3. https://towardsdatascience.com/bert-technology-introduced-in-3-minutes-2c2f9968268c#
