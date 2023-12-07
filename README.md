@@ -16,8 +16,6 @@ We got to know about this dataset through https://github.com/msadat3/SciHTC/blob
 
 We got to know about this dataset when we were reading papers and articles on key phrase extraction and came across this paper: "Bidirectional LSTM Recurrent Neural Network For Keyphrase Extraction" by Marco Basaldella, Elisa Antolli, Giuseppe Serra and Carlo Tasso. This dataset is available on https://huggingface.co/datasets/memray/inspec. This dataset contains a total of 2000 research papers, split into 1500 for training/validation and 500 for testing. 
 
-> How do your model(s) work? (explain) Point out any important details regarding your approaches to unknown words, training, decoding, etc.
-
 ## The Model: bi-LSTM for Key-phrase Extraction
 
 ### Input & Pre-process
@@ -156,3 +154,5 @@ By addressing these limitations and exploring new avenues, this project's findin
 1. https://github.com/msadat3/SciHTC/blob/main/README.md
 2. https://huggingface.co/datasets/memray/inspec
 3. https://towardsdatascience.com/bert-technology-introduced-in-3-minutes-2c2f9968268c#
+4. "Bidirectional LSTM Recurrent Neural Network For Keyphrase Extraction" by Marco Basaldella, Elisa Antolli, Giuseppe Serra and Carlo Tasso
+5. 
